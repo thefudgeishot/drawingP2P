@@ -148,6 +148,27 @@ public class server extends Thread {
                                     out.writeBytes(message);
                                     out.flush();
                                     break;
+                                case 300:
+                                    // message
+                                    int size = in.readInt();
+                                    byte[] chat = in.readNBytes(size);
+                                    synchronized(clientList){
+                                        for(client c : clientList){
+                                            try{
+                                                DataOutputStream clientout = new DataOutputStream(c.socket.getOutputStream());
+                                                clientout.writeInt(300);
+                                                clientout.writeInt(size);
+                                                clientout.write(chat);
+                                                clientout.flush();
+                                                System.out.println("[server] Action code 300 - Message");
+                                            }
+                                            catch (IOException e){
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }
+                                    break;
+
                             }
 
                         }

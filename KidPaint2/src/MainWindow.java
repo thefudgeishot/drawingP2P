@@ -5,7 +5,10 @@ import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelReader;
@@ -14,6 +17,8 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.LinkedList;
 
@@ -32,6 +37,15 @@ public class MainWindow {
 
     @FXML
     Pane paneColor;
+
+    @FXML
+    TextArea areaMsg;
+
+    @FXML
+    TextField txtMsg;
+
+    @FXML
+    Button btnSend;
 
     client client;
     String username;
@@ -133,6 +147,30 @@ public class MainWindow {
             if (!isPenMode)
                 bucketToData(event.getX(), event.getY());
         });
+
+        btnSend.setOnMouseClicked(event-> sendMessage());
+
+        new Thread(()->{
+            try {
+                DataInputStream msgIn = new DataInputStream(client.serverSocket.getInputStream());
+                while(true){
+                    int actioncode = msgIn.readInt();
+                    if(actioncode==300){
+                        int size = msgIn.readInt();
+                        byte[] message = msgIn.readNBytes(size);
+                        String Message = new String(message);
+
+                        javafx.application.Platform.runLater(() ->{
+                            areaMsg.appendText(Message + "\n");
+                        });
+                    }
+                }
+            }
+            catch (IOException ex){
+                ex.printStackTrace();
+            }
+
+        }).start();
 
         initColorMap();
     }
@@ -285,4 +323,24 @@ public class MainWindow {
         }
 
     }
+
+
+    void sendMessage(){
+        try{
+            String msg = username + ":- " + txtMsg.getText();
+            byte[] data = msg.getBytes();
+
+            DataOutputStream msgOut = new DataOutputStream(client.serverSocket.getOutputStream());
+            msgOut.writeInt(300);
+            msgOut.writeInt(data.length);
+            msgOut.write(data);
+            msgOut.flush();
+            txtMsg.clear();
+        }
+        catch (IOException ex){
+            ex.printStackTrace();
+        }
+    }
+
+
 }
