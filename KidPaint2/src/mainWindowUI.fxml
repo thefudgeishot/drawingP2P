@@ -37,20 +37,27 @@
         </Pane>
     </center>
     <top>
-        <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-            <items>
-                <ChoiceBox fx:id="chbMode" prefWidth="80.0">
-                    <items>
-                        <FXCollections fx:factory="observableArrayList">
-                            <String fx:value="Pen"/>
-                            <String fx:value="Bucket"/>
-                        </FXCollections>
-                    </items>
-                </ChoiceBox>
-                <Pane fx:id="paneColor" prefWidth="30.0" prefHeight="30.0" />
-                <Pane fx:id="panePicker" prefWidth="30.0" prefHeight="30.0" />
-            </items>
-        </ToolBar>
+        <VBox>
+            <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                <items>
+                    <ChoiceBox fx:id="chbMode" prefWidth="80.0">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="Pen"/>
+                                <String fx:value="Bucket"/>
+                            </FXCollections>
+                        </items>
+                    </ChoiceBox>
+                    <Pane fx:id="paneColor" prefWidth="30.0" prefHeight="30.0" />
+                    <Pane fx:id="panePicker" prefWidth="30.0" prefHeight="30.0" />
+                </items>
+            </ToolBar>
+            <HBox spacing="10" prefHeight="40.0" prefWidth="600.0" style="-fx-padding: 5 0 5 0;">
+                <Button fx:id="StartRecordBtn" text="Start Rec" />
+                <Button fx:id="PauseRecordBtn" text="Pause Rec" />
+                <Button fx:id="ExportGifBtn" text="Export GIF" />
+            </HBox>
+        </VBox>
     </top>
     <right>
         <VBox prefWidth="200.0">

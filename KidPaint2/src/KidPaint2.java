@@ -103,5 +103,7 @@ public class KidPaint2 extends Application {
         }
         client user = new client(serverSocket,username);
         MainWindow mainWindow = new MainWindow(stage,username,user);
+        out.writeInt(250);
+        out.flush();
     }
 }
