@@ -43,7 +43,6 @@ public class MainWindow {
     @FXML Button btnSend;
     @FXML Button StartRecordBtn;
     @FXML Button PauseRecordBtn;
-    @FXML Button PlayAnimBtn;
     @FXML Button ExportGifBtn;
 
     client client;
@@ -125,7 +124,6 @@ public class MainWindow {
     void AnimationButtons(){
         StartRecordBtn.setOnAction(e-> startRecording());
         PauseRecordBtn.setOnAction(e-> pauseRecording());
-        PlayAnimBtn.setOnAction(e-> startPlaying());
         ExportGifBtn.setOnAction(e-> exportGif());
     }
 
@@ -175,27 +173,6 @@ public class MainWindow {
             e.printStackTrace();
         }
     }
-
-
-    void startPlaying() {
-        if (!isPlaying) {
-            try {
-                DataOutputStream out = new DataOutputStream(client.serverSocket.getOutputStream());
-                out.writeInt(404);
-                out.flush();
-                isPlaying = true;
-                disableInputs();
-                updateButtonStates();
-
-
-            } catch (IOException e) {
-                e.printStackTrace();
-                isPlaying = false;
-                updateButtonStates();
-            }
-        }
-    }
-
 
     void exportGif() {
         if (isRecording || isPlaying || !recorderName.equals(username)) {
@@ -383,17 +360,10 @@ public class MainWindow {
     private void updateButtonStates() {
         StartRecordBtn.setDisable(isRecording || isPlaying);
         PauseRecordBtn.setDisable(!isRecording || isPlaying || !recorderName.equals(username));
-        PlayAnimBtn.setDisable(isRecording || isPlaying);
         ExportGifBtn.setDisable(isRecording || isPlaying || !recorderName.equals(username));
 
         StartRecordBtn.setText(isRecording ? "Recording..." : "Start Rec");
         PauseRecordBtn.setText(isRecording ? "Pause Rec" : "Paused");
-        PlayAnimBtn.setText(isPlaying ? "Playing..." : "Play Anim");
-    }
-
-    private void disableInputs() {
-        canvas.setDisable(true);
-        chbMode.setDisable(true);
     }
 
     private void enableInputs() {

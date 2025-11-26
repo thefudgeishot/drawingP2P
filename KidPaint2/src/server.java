@@ -189,28 +189,6 @@ public class server extends Thread {
                                     isRecording = false ;
                                     break ;
 
-                                case 404 :
-                                    System.out.println("[server] Action code 404 : Play recording ");
-                                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                    DataOutputStream frameOut = new DataOutputStream(baos);
-
-                                    frameOut.writeInt(animationFrames.size());
-
-                                    for (BufferedImage frame : animationFrames) {
-                                        ByteArrayOutputStream frameBaos = new ByteArrayOutputStream();
-                                        ImageIO.write(frame, "png", frameBaos);
-                                        byte[] frameBytes = frameBaos.toByteArray();
-                                        frameOut.writeInt(frameBytes.length);
-                                        frameOut.write(frameBytes);
-                                    }
-                                    frameOut.flush();
-                                    byte[] frameData = baos.toByteArray();
-                                    out.writeInt(404);
-                                    out.writeInt(frameData.length);
-                                    out.write(frameData);
-                                    out.flush();
-                                    break;
-
                                 case 405 :
                                     System.out.println("[server] Action code 405 : Receive Frame ");
                                     int frameSize = in.readInt();
