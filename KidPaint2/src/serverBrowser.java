@@ -1,6 +1,7 @@
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -98,9 +99,9 @@ public class serverBrowser{
     }
 
     class advertiser extends Thread {
-        ArrayList<server> serverList;
+        ArrayList<server> list;
         public advertiser(ArrayList<server> serverList) {
-            this.serverList = serverList;
+            this.list = serverList;
         }
 
         @Override
@@ -108,9 +109,9 @@ public class serverBrowser{
             while(!Thread.currentThread().isInterrupted()) {
                 try {
                     // search for servers
-                    synchronized (this.serverList) {
+                    synchronized (this.list) {
                         // clear previously found servers, if they still exist they will echo back
-                        this.serverList = new ArrayList<>();
+                        this.list.clear();
                     }
                     DatagramSocket socket = new DatagramSocket();
                     socket.setBroadcast(true);
@@ -164,14 +165,18 @@ public class serverBrowser{
         advertiser.start();
 
         Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(2), event -> {
-            synchronized (serverList) {
-                // clear all elements
-                this.serverList.getChildren().clear();
-                // add ui elements for all availiable servers
-                for (int i = 0; i != serverList.size(); i++) {
-                    this.serverList.getChildren().add(serverDetails(serverList.get(i)));
+            Platform.runLater(() -> {
+                synchronized (serverList) {
+                    // clear all elements
+                    System.out.println("Before clearing: " + this.serverList.getChildren().size());
+                    this.serverList.getChildren().clear();
+                    System.out.println("After clearing: " + this.serverList.getChildren().size());
+                    // add ui elements for all availiable servers
+                    for (int i = 0; i != serverList.size(); i++) {
+                        this.serverList.getChildren().add(serverDetails(serverList.get(i)));
+                    }
                 }
-            }
+            });
         }));
         timeline.setCycleCount(Animation.INDEFINITE);
         timeline.play();
