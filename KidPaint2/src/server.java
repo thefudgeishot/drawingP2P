@@ -9,6 +9,8 @@ import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public class server extends Thread {
@@ -111,6 +113,7 @@ public class server extends Thread {
         }
     }
 
+    int[][] imageArray = new int[50][50];
     int port = 38877;
     ArrayList<client> clientList = new ArrayList<>();
     String name;
@@ -167,7 +170,7 @@ public class server extends Thread {
                                     broadcastMessage(chat, 300);
                                     break;
 
-                                case 400: //add history to the server side array (drawing history)
+                                case 400:
                                     int len= in.readInt();
                                     byte[] drawingUpdate = in.readNBytes(len);
                                     actionHistory+= new String(drawingUpdate);
@@ -214,6 +217,49 @@ public class server extends Thread {
                                     }
                                     break ;
 
+                                case 500:
+                                    System.out.println("[server] Action code 500 : Saving Drawing");
+                                    String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS"));
+                                    String filename = timestamp + ".png";
+                                    generateImage(actionHistory);
+                                    saveImage(imageArray, filename, "png");
+                                    break;
+
+                                case 501:
+                                    System.out.println("[server] Action code 501 : Load Image");
+                                    int fnameLen = in.readInt();
+                                    String imagefile = new String(in.readNBytes(fnameLen));
+                                    File file = new File(imagefile);
+
+                                    if (file.exists()) {
+                                        try {
+                                            BufferedImage img = ImageIO.read(file);
+                                            if (img != null) {
+                                                BufferedImage scaled = new BufferedImage(50, 50, BufferedImage.TYPE_INT_ARGB);
+                                                scaled.getGraphics().drawImage(img, 0, 0, 50, 50, null);
+
+                                                StringBuilder sb = new StringBuilder();
+                                                for (int y = 0; y < 50; y++) {
+                                                    for (int x = 0; x < 50; x++) {
+                                                        int argb = scaled.getRGB(x, y);
+                                                        sb.append(x).append(",").append(y).append(",").append(argb).append(";");
+                                                    }
+                                                }
+                                                actionHistory = sb.toString();
+
+                                                // Broadcast to all clients with code 400 (drawing update)
+                                                byte[] dataBytes = actionHistory.getBytes();
+                                                broadcastMessage(dataBytes, 501);
+                                                System.out.println("[server] Loaded and broadcast image " + imagefile);
+                                            }
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    } else {
+                                        System.out.println("[server] File not found: " + imagefile);
+                                    }
+                                    break;
+
                                 default:
                                     System.out.println("[server] unknown actionCode：" + actionCode);
                                     break;
@@ -229,6 +275,42 @@ public class server extends Thread {
             clientList.removeAll(disconnected);
             disconnected.clear();
         }
+    }
+
+    void generateImage(String actionHistory){
+        String[] actionhistoryarray = actionHistory.split(";");
+        for(String action : actionhistoryarray){
+            if (action.isEmpty()) continue;
+            String[] parts = action.split(",");
+            int col = Integer.parseInt(parts[0]);
+            int row = Integer.parseInt(parts[1]);
+            int argb = Integer.parseInt(parts[2]);
+            imageArray[row][col] = argb;
+        }
+    }
+
+
+    void saveImage(int [][] data, String filepath, String format){
+        try {
+            int rows = data.length;
+            int cols = data[0].length;
+
+            BufferedImage image = new BufferedImage(cols, rows, BufferedImage.TYPE_INT_ARGB);
+            for (int y = 0; y < rows; y++) {
+                for (int x = 0; x < cols; x++) {
+                    image.setRGB(x, y, data[y][x]);
+                }
+            }
+
+            File outputFile = new File(filepath);
+            ImageIO.write(image, format, outputFile);
+
+            System.out.println("Image saved to:" + outputFile.getAbsolutePath());
+        }
+        catch(IOException e){
+            e.printStackTrace();
+        }
+
     }
 
 

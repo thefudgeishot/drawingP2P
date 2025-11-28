@@ -44,6 +44,9 @@ public class MainWindow {
     @FXML Button StartRecordBtn;
     @FXML Button PauseRecordBtn;
     @FXML Button ExportGifBtn;
+    @FXML Button Savebtn;
+    @FXML TextField txtLoadFile;
+    @FXML Button btnLoad;
 
     client client;
     String username;
@@ -125,8 +128,38 @@ public class MainWindow {
         StartRecordBtn.setOnAction(e-> startRecording());
         PauseRecordBtn.setOnAction(e-> pauseRecording());
         ExportGifBtn.setOnAction(e-> exportGif());
+        Savebtn.setOnAction(e-> saveImage());
+        btnLoad.setOnAction(e -> loadRequest());
     }
 
+
+    void saveImage(){
+        try{
+            DataOutputStream out = new DataOutputStream(client.serverSocket.getOutputStream());
+            out.writeInt(500);
+            out.flush();
+        }
+        catch(IOException e){
+            e.printStackTrace();
+        }
+
+    }
+
+    void loadRequest(){
+        String filename = txtLoadFile.getText().trim();
+        if (!filename.isEmpty()) {
+            try {
+                DataOutputStream out = new DataOutputStream(client.serverSocket.getOutputStream());
+                out.writeInt(501);
+                byte[] nameBytes = filename.getBytes();
+                out.writeInt(nameBytes.length);
+                out.write(nameBytes);
+                out.flush();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
 
     void startRecording(){
         try{
@@ -259,6 +292,8 @@ public class MainWindow {
                         case 404:
                             handleAnimationFrames(msg.data);
                             break;
+                        case 501:
+                            handleLoadImage(msg.data);
                         default:
                             System.out.println("[Client] unknown actionCode：" + msg.actionCode);
                     }
@@ -267,6 +302,27 @@ public class MainWindow {
                 e.printStackTrace();
             }
         }).start();
+    }
+
+
+    private void handleLoadImage(byte[] loadData){
+        String actionstring = new String(loadData);
+        for (int row = 0; row < numPixels; row++) {
+            for (int col = 0; col < numPixels; col++) {
+                data[row][col] = 0;
+            }
+        }
+
+        String[] actionlist = actionstring.split(";");
+        for (String action : actionlist) {
+            if (action.isEmpty()) continue;
+            String[] parts = action.split(",");
+            int col = Integer.parseInt(parts[0]);
+            int row = Integer.parseInt(parts[1]);
+            int argb = Integer.parseInt(parts[2]);
+            data[row][col] = argb;
+        }
+        javafx.application.Platform.runLater(this::render);
     }
 
 

@@ -56,6 +56,9 @@
                 <Button fx:id="StartRecordBtn" text="Start Rec" />
                 <Button fx:id="PauseRecordBtn" text="Pause Rec" />
                 <Button fx:id="ExportGifBtn" text="Export GIF" />
+                <Button fx:id="Savebtn" text="Save" />
+                <TextField fx:id="txtLoadFile" prefWidth="120.0" promptText="filename.png"/>
+                <Button fx:id="btnLoad" text="Load" />
             </HBox>
         </VBox>
     </top>
